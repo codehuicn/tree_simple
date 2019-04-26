@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<style>
+    body {
+        background: #eee;
+    }
+    .box {
+        position: relative;
+        width: 550px;
+        height: 550px;
+        background: #fff;
+    }
+
+    .tree-node {
+        position: absolute;
+        top: 100px;
+        left: 100px;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        background: #ccc;
+    }
+    .tree-node span {
+        position: absolute;
+        top: -20px;
+        left: 0;
+        font-family: 'Microsoft Yahei';
+        font-size: 14px;
+        color: #ccc;
+        white-space: nowrap;
+    }
+
+    .tree-line-x {
+        position: absolute;
+        top: 200px;
+        left: 55px;
+        width: 100px;
+        height: 3px;
+        background: #ccc;
+    }
+    .tree-line-y {
+        position: absolute;
+        top: 220px;
+        left: 55px;
+        width: 3px;
+        height: 100px;
+        background: #ccc;
+    }
+
+    .tree-blue {
+        background: #5858f1;
+    }
+    .tree-blue.tree-node span {
+        color: #5858f1;
+    }
+    
+</style>
+<body>
+    <div class="box">
+        
+    </div>
+    <script src="jquery.min.js"></script>
+    <script>
+        var data = {
+            name: ['项目定位V1', '粗算V1'],
+            sub: [
+                {
+                    name: ['强排V1'],
+                    sub: [
+                        {
+                            name: ['配置表V1', '成本V1', '测算V1'],
+                            disabled: true,
+                        },
+                        {
+                            name: ['配置表V2', '成本V2', '测算V2'],
+                        },
+                        {
+                            name: ['配置表V3', '成本V3', '测算V3'],
+                        },
+                        {
+                            name: ['配置表V4', '成本V4', '测算V4'],
+                        }
+                    ]
+                },
+                {
+                    name: ['强排V2'],
+                    sub: [
+                        {
+                            name: ['配置表V1', '成本V1', '测算V1'],
+                        },
+                        {
+                            name: ['配置表V2', '成本V2', '测算V2'],
+                            disabled: true,
+                        }
+                    ]
+                },
+                {
+                    name: ['强排V3'],
+                    sub: [
+                        {
+                            name: ['配置表V1', '成本V1', '测算V1'],
+                        },
+                    ]
+                },
+            ],
+        }
+
+        $(function(){
+            getTreeSimple($('.box'), data, {offsetX: 50, offsetY: 40, itemLen: 100, 
+                nodeW: 10, nodeH: 10, classActive: 'tree-blue active', classDisabled: 'disabled'})
+        })
+
+        function getNodeHtml(posX, posY, name, className, nodeW, nodeH) {
+            var htmlStr = '';
+            htmlStr += '<div class="tree-node '+ className +'" ';
+            htmlStr += 'style="top: '+ posY +'px;left: '+ posX +'px;width: '+ nodeW +'px;height: '+ nodeH +'px;"';
+            htmlStr += '><span>' + name + '</span></div>';
+            return htmlStr;
+        }
+
+        function getLineHtml(posX, posY, itemLen, type, className) {
+            var htmlStr = '';
+            htmlStr += '<div class="tree-line-'+ type +' '+ className +'" ';
+            htmlStr += 'style="top: '+ posY +'px;left: '+ posX +'px;';
+            if (type === 'x') {
+                htmlStr += 'width: '+ itemLen +'px;"';
+            } else {
+                htmlStr += 'height: '+ itemLen +'px;"';
+            }
+            htmlStr += '></div>';
+            return htmlStr;
+        }
+
+        function getTreeSimple($box, data, opt) {
+            var option = {
+                posX: 0, posY: 0, offsetX: 100, offsetY: 50, itemLen: 100, 
+                nodeW: 10, nodeH: 10, classActive: 'tree-blue', classDisabled: ''
+            };
+            if (opt) $.extend(option, opt);
+
+            var htmlStr = '', posX = option.posX, posY = option.posY, offsetX = option.offsetX, 
+                offsetY = option.offsetY, itemLen = option.itemLen, 
+                nodeW = option.nodeW, nodeH = option.nodeH, classActive = option.classActive, 
+                classDisabled = option.classDisabled;
+            
+            posX = offsetX;
+            posY = offsetY;
+            for (var i = 0, il = data.name.length; i < il; i++) {
+                htmlStr += getNodeHtml(posX, posY, data.name[i], classActive, nodeW, nodeH);
+                
+                if (i === il - 1 && i !== 0) break;
+                htmlStr += getLineHtml(posX+nodeW/2, posY+nodeH/2-1.5, itemLen, 'x', classActive);
+                posX = posX + itemLen;
+            }
+            
+            var sub1 = data.sub, sub2, posX1, posY1, posX2, posY2, className, sub2Name, itemLenTemp;
+            posX = offsetX + nodeW / 2 + itemLen / 2;
+            posY = offsetY + nodeH / 2;
+            for (var i = 0, il = sub1.length; i < il; i++) {
+                posX1 = posX;    
+                posY1 = posY + itemLen / 2 * i;    
+                itemLenTemp = itemLen;
+                if (posY2) itemLenTemp = itemLen + (posY2 - posY1);       
+                htmlStr += getLineHtml(posX1, posY1, itemLenTemp, 'y', classActive);
+                posY1 = posY1 + itemLenTemp;
+                htmlStr += getLineHtml(posX1, posY1, itemLen, 'x', classActive);
+                htmlStr += getNodeHtml(posX1 + itemLen / 2 - nodeW/2 + 1.5, posY1 - nodeH / 2 + 1.5, sub1[i].name, classActive, nodeW, nodeH);
+            
+                sub2 = sub1[i].sub;
+                posX2 = posX1 + itemLen;
+                posY2 = posY1;
+                for (var j = 0, jl = sub2.length; j < jl; j++) {
+                    if (sub2[j].disabled) {
+                        className = classDisabled;
+                    } else {
+                        className = classActive;
+                    }
+                    if (j === 0) {
+                        htmlStr += getLineHtml(posX2, posY2 - itemLen/4 + 1.5, itemLen/4, 'y', className);
+                        htmlStr += getLineHtml(posX2, posY2 - itemLen/4, itemLen * (sub2[j].name.length), 'x', className);
+                    
+                        sub2Name = sub2[j].name;
+                        for (var z = 0, zl = sub2Name.length; z < zl; z++) {
+                            htmlStr += getNodeHtml(posX2 + itemLen * (1 + z) - nodeW / 2, posY2 - itemLen/4 - nodeH / 2 + 1.5, sub2Name[z], className, nodeW, nodeH);
+                        }
+                    } else {
+                        itemLenTemp = itemLen / 2;
+                        if (j === 1) itemLenTemp = itemLen / 4;
+                        htmlStr += getLineHtml(posX2, posY2 + 1.5, itemLenTemp, 'y', className);
+                        posY2 = posY2 + itemLen/2;
+                        if (j === 1) posY2 = posY2 - itemLen/4;
+                        htmlStr += getLineHtml(posX2, posY2, itemLen * (sub2[j].name.length), 'x', className);
+                    
+                        sub2Name = sub2[j].name;
+                        for (var z = 0, zl = sub2Name.length; z < zl; z++) {
+                            htmlStr += getNodeHtml(posX2 + itemLen * (1 + z) - nodeW / 2, posY2 - nodeH / 2 + 1.5, sub2Name[z], className, nodeW, nodeH);
+                        }
+                    }
+                    
+                }                
+            }
+
+            $box.html(htmlStr);
+            $('.tree-node span').each(function(){
+                var $this = $(this), widthVal = $this.width();
+                $this.css('left', -widthVal/2+nodeW/2);
+            });
+        }
+
+    </script>
+</body>
+</html>
